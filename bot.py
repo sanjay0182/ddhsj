@@ -130,13 +130,21 @@ def on_callback(q):
 
 def main():
     threading.Thread(target=web, daemon=True).start()
-    tg("deleteWebhook")
+    me = tg("getMe")
+    if not me.get("ok"):
+        print("BOT_TOKEN GALAT HAI ya Telegram se connect nahi hua:", me, flush=True)
+    else:
+        print("bot connected: @" + me["result"]["username"], flush=True)
+    print("deleteWebhook:", tg("deleteWebhook", drop_pending_updates=True), flush=True)
     offset = 0
-    print("bot started")
     while True:
         try:
             r = requests.get(f"{TG}/getUpdates",
                              params={"timeout": 30, "offset": offset}, timeout=40).json()
+            if not r.get("ok"):
+                print("getUpdates error:", r, flush=True)
+                time.sleep(5)
+                continue
             for u in r.get("result", []):
                 offset = u["update_id"] + 1
                 if "message" in u:
